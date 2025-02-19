@@ -10,9 +10,5 @@
     { "src": "/api/bulk-update", "dest": "/api/bulk-update.js" },
     { "src": "/api/analytics", "dest": "/api/analytics.js" },
     { "src": "/(.*)", "dest": "/public/$1" }
-  ],
-  "env": {
-    "MONGODB_URI": "@mongodb-uri",
-    "API_KEY": "@api-key"
-  }
+  ]
 }

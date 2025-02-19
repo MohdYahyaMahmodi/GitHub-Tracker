@@ -1,4 +1,4 @@
-// This file should be placed in /api/counter.js for Vercel serverless functions
+// This file should be placed in /api/counter.js
 const { MongoClient } = require('mongodb');
 
 // Generate SVG counter
@@ -6,9 +6,9 @@ function generateCounterSVG(count, options = {}) {
   const {
     label = 'Profile Views',
     labelColor = '#555',
-    countColor = '#007ec6',
+    countColor = '#fff',  // Text color for count
     labelBgColor = '#eee',
-    countBgColor = '#0476b5',
+    countBgColor = '#007ec6',  // Count background color
     style = 'flat',
     width = 120,
     height = 20,
@@ -25,47 +25,41 @@ function generateCounterSVG(count, options = {}) {
   
   // Generate SVG based on style
   if (style === 'flat') {
-    return `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="${height}" viewBox="0 0 ${totalWidth} ${height}">
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="${height}" viewBox="0 0 ${totalWidth} ${height}">
       <rect width="${labelWidth}" height="${height}" fill="${labelBgColor}"/>
       <rect x="${labelWidth}" width="${countWidth}" height="${height}" fill="${countBgColor}"/>
       <text x="${labelWidth / 2}" y="${height / 2 + 4}" font-family="Verdana,sans-serif" font-size="${fontSize}" fill="${labelColor}" text-anchor="middle">${label}</text>
-      <text x="${labelWidth + countWidth / 2}" y="${height / 2 + 4}" font-family="Verdana,sans-serif" font-size="${fontSize}" font-weight="bold" fill="#fff" text-anchor="middle">${formattedCount}</text>
-    </svg>
-    `;
+      <text x="${labelWidth + countWidth / 2}" y="${height / 2 + 4}" font-family="Verdana,sans-serif" font-size="${fontSize}" font-weight="bold" fill="${countColor}" text-anchor="middle">${formattedCount}</text>
+    </svg>`;
   } else if (style === 'plastic') {
-    return `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="${height}" viewBox="0 0 ${totalWidth} ${height}">
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="${height}" viewBox="0 0 ${totalWidth} ${height}">
       <linearGradient id="a" x2="0" y2="100%">
         <stop offset="0" stop-color="#eee" stop-opacity=".1"/>
         <stop offset="1" stop-opacity=".1"/>
       </linearGradient>
-      <rect rx="3" width="${totalWidth}" height="${height}" fill="#555"/>
+      <rect rx="3" width="${totalWidth}" height="${height}" fill="${labelBgColor}"/>
       <rect rx="3" x="${labelWidth}" width="${countWidth}" height="${height}" fill="${countBgColor}"/>
       <path fill="${countBgColor}" d="M${labelWidth} 0h4v${height}h-4z"/>
       <rect rx="3" width="${totalWidth}" height="${height}" fill="url(#a)"/>
-      <g fill="#fff" text-anchor="middle" font-family="Verdana,sans-serif" font-size="${fontSize}">
+      <g text-anchor="middle" font-family="Verdana,sans-serif" font-size="${fontSize}">
         <text x="${labelWidth / 2}" y="${height / 2 + 4}" fill="#000" fill-opacity=".3">${label}</text>
-        <text x="${labelWidth / 2}" y="${height / 2 + 3}">${label}</text>
+        <text x="${labelWidth / 2}" y="${height / 2 + 3}" fill="${labelColor}">${label}</text>
         <text x="${labelWidth + countWidth / 2}" y="${height / 2 + 4}" fill="#000" fill-opacity=".3">${formattedCount}</text>
-        <text x="${labelWidth + countWidth / 2}" y="${height / 2 + 3}">${formattedCount}</text>
+        <text x="${labelWidth + countWidth / 2}" y="${height / 2 + 3}" fill="${countColor}">${formattedCount}</text>
       </g>
-    </svg>
-    `;
+    </svg>`;
   } else if (style === 'for-the-badge') {
     // All uppercase for this style
     const uppercaseLabel = label.toUpperCase();
-    return `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth + 10}" height="${height + 10}" viewBox="0 0 ${totalWidth + 10} ${height + 10}">
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth + 10}" height="${height + 10}" viewBox="0 0 ${totalWidth + 10} ${height + 10}">
       <rect rx="4" width="${labelWidth + 5}" height="${height + 10}" fill="${labelBgColor}"/>
       <rect rx="4" x="${labelWidth + 5}" width="${countWidth + 5}" height="${height + 10}" fill="${countBgColor}"/>
       <path fill="${countBgColor}" d="M${labelWidth + 5} 0h4v${height + 10}h-4z"/>
-      <g fill="#fff" text-anchor="middle" font-family="Verdana,sans-serif" font-size="${fontSize + 1}" font-weight="bold">
-        <text x="${(labelWidth + 5) / 2}" y="${(height + 10) / 2 + 4}">${uppercaseLabel}</text>
-        <text x="${labelWidth + 5 + (countWidth + 5) / 2}" y="${(height + 10) / 2 + 4}">${formattedCount}</text>
+      <g text-anchor="middle" font-family="Verdana,sans-serif" font-size="${fontSize + 1}" font-weight="bold">
+        <text x="${(labelWidth + 5) / 2}" y="${(height + 10) / 2 + 4}" fill="${labelColor}">${uppercaseLabel}</text>
+        <text x="${labelWidth + 5 + (countWidth + 5) / 2}" y="${(height + 10) / 2 + 4}" fill="${countColor}">${formattedCount}</text>
       </g>
-    </svg>
-    `;
+    </svg>`;
   }
   
   // Default to flat style if unrecognized
@@ -87,20 +81,111 @@ async function connectToDatabase() {
     throw new Error('Please define the MONGODB_URI environment variable in Vercel');
   }
 
-  // Connect to MongoDB
-  const client = new MongoClient(process.env.MONGODB_URI);
-  await client.connect();
-  const db = client.db('profile-counter');
+  try {
+    // Connect to MongoDB with options
+    const uri = process.env.MONGODB_URI;
+    const options = {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    };
+    
+    const client = new MongoClient(uri, options);
+    await client.connect();
+    const db = client.db('profile-counter');
+    
+    // Cache the client and db connections
+    cachedClient = client;
+    cachedDb = db;
+    
+    return { client, db };
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    throw new Error('Failed to connect to MongoDB');
+  }
+}
+
+// Helper functions for color handling
+function isValidHexColor(color) {
+  return /^[0-9A-F]{3,6}$/i.test(color);
+}
+
+function formatColor(color) {
+  if (!color) return '#007ec6'; // Default blue
   
-  // Cache the client and db connections
-  cachedClient = client;
-  cachedDb = db;
+  // Handle colors without hash
+  if (color.charAt(0) !== '#') {
+    // Check if it's a valid hex color without the #
+    if (isValidHexColor(color)) {
+      return `#${color}`;
+    }
+    
+    // Named colors dictionary
+    const namedColors = {
+      'blue': '#007ec6',
+      'green': '#28a745',
+      'red': '#dc3545',
+      'yellow': '#ffc107',
+      'orange': '#fd7e14',
+      'purple': '#6f42c1',
+      'black': '#000000',
+      'gray': '#6c757d'
+    };
+    
+    return namedColors[color.toLowerCase()] || '#007ec6';
+  }
   
-  return { client, db };
+  return color;
+}
+
+// Rate limiting helpers - to prevent abusive refreshing
+const viewCounters = {};
+const RATE_LIMIT_WINDOW = 60000; // 1 minute in milliseconds for direct API calls
+
+function isRateLimited(ip, username) {
+  const now = Date.now();
+  const key = `${ip}:${username}`;
+  
+  // Clean up old entries
+  Object.keys(viewCounters).forEach(k => {
+    if (now - viewCounters[k].timestamp > RATE_LIMIT_WINDOW) {
+      delete viewCounters[k];
+    }
+  });
+  
+  if (!viewCounters[key]) {
+    viewCounters[key] = {
+      count: 1,
+      timestamp: now
+    };
+    return false;
+  }
+  
+  // Limit to prevent excessive counting on direct refreshes
+  if (now - viewCounters[key].timestamp < RATE_LIMIT_WINDOW) {
+    viewCounters[key].count += 1;
+    return viewCounters[key].count > 5; // Allow up to 5 counts per minute
+  }
+  
+  // Reset counter if window has passed
+  viewCounters[key] = {
+    count: 1,
+    timestamp: now
+  };
+  return false;
 }
 
 module.exports = async (req, res) => {
   try {
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
+    
     // Extract query parameters
     const { username } = req.query;
     
@@ -114,54 +199,73 @@ module.exports = async (req, res) => {
     // Get style parameters
     const style = req.query.style || 'flat';
     const label = req.query.label || 'Profile Views';
-    const color = req.query.color || '#007ec6';
-    const noCount = req.query.nocount === 'true';
     
-    // Connect to database
-    const { db } = await connectToDatabase();
+    // Parse all color parameters
+    const countBgColor = formatColor(req.query.color || req.query.countBgColor || '007ec6');
+    const labelColor = formatColor(req.query.labelColor || '555');
+    const countColor = formatColor(req.query.countColor || 'fff');
+    const labelBgColor = formatColor(req.query.labelBgColor || 'eee');
     
-    // Increment counter unless nocount is true (for debugging)
+    // Extract client IP for rate limiting
+    const ip = req.headers['x-forwarded-for'] || 
+               req.headers['x-real-ip'] || 
+               req.connection.remoteAddress || 
+               '0.0.0.0';
+    
     let count = 0;
+    let shouldCount = !isRateLimited(ip, username);
     
-    if (!noCount) {
-      // Store analytics data
-      const timestamp = new Date();
-      const userAgent = req.headers['user-agent'] || '';
-      const referer = req.headers['referer'] || '';
-      const ip = req.headers['x-forwarded-for'] || 
-                req.headers['x-real-ip'] || 
-                req.connection.remoteAddress;
+    try {
+      // Connect to database
+      const { db } = await connectToDatabase();
       
-      // Increment counter using MongoDB findOneAndUpdate
-      const result = await db.collection('counters').findOneAndUpdate(
-        { username },
-        { 
-          $inc: { count: 1 },
-          $set: { lastUpdated: timestamp },
-          $push: { 
-            // Limit stored views to prevent database growth issues
-            views: {
-              $each: [{
-                timestamp,
-                userAgent,
-                referer,
-                ip: ip ? ip.split(',')[0].trim() : null
-              }],
-              $slice: -1000 // Keep only the most recent 1000 views
+      // Get current count first (we'll need it regardless)
+      const currentDoc = await db.collection('counters').findOne({ username });
+      count = currentDoc?.count || 0;
+      
+      // Increment counter if not rate limited
+      if (shouldCount) {
+        // Store analytics data
+        const timestamp = new Date();
+        const userAgent = req.headers['user-agent'] || '';
+        const referer = req.headers['referer'] || '';
+        
+        // Increment counter using MongoDB findOneAndUpdate
+        const result = await db.collection('counters').findOneAndUpdate(
+          { username },
+          { 
+            $inc: { count: 1 },
+            $set: { lastUpdated: timestamp },
+            $push: { 
+              // Limit stored views to prevent database growth issues
+              views: {
+                $each: [{
+                  timestamp,
+                  userAgent,
+                  referer,
+                  ip: ip ? ip.split(',')[0].trim() : null
+                }],
+                $slice: -1000 // Keep only the most recent 1000 views
+              }
             }
+          },
+          { 
+            upsert: true,
+            returnDocument: 'after'
           }
-        },
-        { 
-          upsert: true,
-          returnDocument: 'after'
+        );
+        
+        // Use the updated count if available
+        if (result?.value?.count) {
+          count = result.value.count;
+        } else {
+          // Otherwise, increment our local count since we know we successfully updated
+          count += 1;
         }
-      );
-      
-      count = result.value?.count || 1;
-    } else {
-      // Just get the current count without incrementing
-      const result = await db.collection('counters').findOne({ username });
-      count = result?.count || 0;
+      }
+    } catch (dbError) {
+      console.error('Database operation error:', dbError);
+      // We already have count from earlier query or it defaulted to 0
     }
     
     // Set headers for SVG response
@@ -170,18 +274,22 @@ module.exports = async (req, res) => {
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
     
-    // Generate and send SVG
+    // Generate and send SVG with all the formatted colors
     const svg = generateCounterSVG(count, {
       label,
-      countBgColor: color,
+      labelColor,
+      countColor, 
+      labelBgColor,
+      countBgColor,
       style
     });
     
-    res.send(svg);
+    res.status(200).send(svg);
     
   } catch (error) {
     console.error('Counter error:', error);
-    res.status(500).send(generateCounterSVG(0, { 
+    // Return an error badge
+    res.status(200).send(generateCounterSVG(0, { 
       label: 'Error', 
       countBgColor: '#e05d44' 
     }));

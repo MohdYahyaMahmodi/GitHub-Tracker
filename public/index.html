@@ -3,55 +3,89 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profile Counter - GitHub Profile View Badges</title>
+  <title>GitHub Profile Counter - Custom Badges for your README</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <div class="container">
+  <div class="container">
+    <header>
       <div class="logo">
         <i class="fa-solid fa-chart-line"></i>
       </div>
-      <h1>Profile Counter</h1>
-      <p>Open-source profile view tracking for GitHub README badges</p>
-    </div>
-  </header>
-  <main>
-    <div class="container">
-      <section class="demo-section">
-        <h2>Create Your Badge</h2>
-        <div class="generator-container">
-          <div class="generator-form">
+      <h1>GitHub Profile Counter</h1>
+      <p>Elevate your GitHub profile with stylish view tracking badges</p>
+    </header>
+    
+    <main>
+      <div class="card">
+        <div class="tabs">
+          <button class="tab active" data-tab="create"><i class="fa-solid fa-wand-magic-sparkles"></i> Create Badge</button>
+          <button class="tab" data-tab="info"><i class="fa-solid fa-circle-info"></i> How It Works</button>
+        </div>
+        
+        <div class="tab-content active" id="create-tab">
+          <div class="form-container">
             <div class="input-group">
-              <label for="username">GitHub Username</label>
-              <div class="input-with-icon">
-                <i class="fa-brands fa-github"></i>
-                <input type="text" id="username" placeholder="Enter your GitHub username">
+              <label for="username"><i class="fa-brands fa-github"></i> GitHub Username</label>
+              <input type="text" id="username" placeholder="Enter your GitHub username" required>
+              <div id="preview-container" class="preview-box">
+                <p class="preview-label">Badge Preview:</p>
+                <div class="preview-container" id="badgePreview">
+                  <!-- Badge preview will be loaded here -->
+                </div>
               </div>
             </div>
             
             <div class="input-group">
-              <label for="label">Badge Label</label>
-              <div class="input-with-icon">
-                <i class="fa-solid fa-tag"></i>
-                <input type="text" id="label" placeholder="Profile Views" value="Profile Views">
+              <label for="label"><i class="fa-solid fa-tag"></i> Badge Label</label>
+              <input type="text" id="label" placeholder="Profile Views" value="Profile Views" required>
+            </div>
+            
+            <div class="advanced-colors">
+              <div class="input-group">
+                <label for="color"><i class="fa-solid fa-palette"></i> Badge Colors</label>
+                <div class="colors-grid">
+                  <div class="color-item">
+                    <span class="color-label">Count Background</span>
+                    <div class="color-picker">
+                      <input type="color" id="color" value="#6366f1">
+                      <input type="text" id="colorHex" value="#6366f1">
+                    </div>
+                  </div>
+                  
+                  <div class="color-item">
+                    <span class="color-label">Count Text</span>
+                    <div class="color-picker">
+                      <input type="color" id="countColor" value="#ffffff">
+                      <input type="text" class="color-hex" value="#ffffff">
+                    </div>
+                  </div>
+                  
+                  <div class="color-item">
+                    <span class="color-label">Label Background</span>
+                    <div class="color-picker">
+                      <input type="color" id="labelBgColor" value="#eeeeee">
+                      <input type="text" class="color-hex" value="#eeeeee">
+                    </div>
+                  </div>
+                  
+                  <div class="color-item">
+                    <span class="color-label">Label Text</span>
+                    <div class="color-picker">
+                      <input type="color" id="labelColor" value="#555555">
+                      <input type="text" class="color-hex" value="#555555">
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             
             <div class="input-group">
-              <label for="color">Badge Color</label>
-              <div class="color-picker">
-                <input type="color" id="color" value="#007ec6">
-                <input type="text" id="colorHex" value="#007ec6">
-              </div>
-            </div>
-            
-            <div class="input-group">
-              <label>Badge Style</label>
+              <label><i class="fa-solid fa-brush"></i> Badge Style</label>
               <div class="style-selector">
                 <div class="style-option active" data-style="flat">
                   <img src="https://img.shields.io/badge/style-flat-blue?style=flat" alt="Flat style">
@@ -69,120 +103,143 @@
             </div>
           </div>
           
-          <div class="badge-preview">
-            <h3>Badge Preview</h3>
-            <div class="preview-container" id="badgePreview">
-              <!-- Badge preview will be loaded here -->
-            </div>
-            
-            <div class="badge-info">
-              <div class="counter-url">
+          <div class="badge-info">
+            <div class="code-section">
+              <h3><i class="fa-solid fa-code"></i> Integration Code</h3>
+              
+              <div class="code-box-container">
                 <h4>Badge URL</h4>
                 <div class="code-box">
                   <input type="text" id="badgeUrl" readonly>
-                  <button id="copyBadgeUrl" class="copy-button">
+                  <button id="copyBadgeUrl" class="icon-button">
                     <i class="fa-regular fa-copy"></i>
                   </button>
                 </div>
               </div>
               
-              <div class="markdown-code">
+              <div class="code-box-container">
                 <h4>Markdown for GitHub</h4>
                 <div class="code-box">
                   <input type="text" id="markdownCode" readonly>
-                  <button id="copyMarkdown" class="copy-button">
+                  <button id="copyMarkdown" class="icon-button">
                     <i class="fa-regular fa-copy"></i>
                   </button>
                 </div>
               </div>
               
-              <div class="html-code">
+              <div class="code-box-container">
                 <h4>HTML Code</h4>
                 <div class="code-box">
                   <input type="text" id="htmlCode" readonly>
-                  <button id="copyHtml" class="copy-button">
+                  <button id="copyHtml" class="icon-button">
                     <i class="fa-regular fa-copy"></i>
                   </button>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-      
-      <section class="features-section">
-        <h2>Features</h2>
-        <div class="features-grid">
-          <div class="feature-card">
-            <div class="feature-icon">
-              <i class="fa-solid fa-bolt"></i>
-            </div>
-            <h3>Fast &amp; Reliable</h3>
-            <p>Built on serverless architecture for maximum performance and uptime</p>
-          </div>
-          
-          <div class="feature-card">
-            <div class="feature-icon">
-              <i class="fa-solid fa-palette"></i>
-            </div>
-            <h3>Customizable</h3>
-            <p>Choose from different styles, colors, and labels to match your profile</p>
-          </div>
-          
-          <div class="feature-card">
-            <div class="feature-icon">
-              <i class="fa-solid fa-chart-simple"></i>
-            </div>
-            <h3>Analytics</h3>
-            <p>Track view trends and statistics with detailed analytics</p>
-          </div>
-          
-          <div class="feature-card">
-            <div class="feature-icon">
-              <i class="fa-solid fa-code"></i>
-            </div>
-            <h3>Open Source</h3>
-            <p>Free to use and open for contributions from the community</p>
-          </div>
-        </div>
-      </section>
-      
-      <section class="usage-section">
-        <h2>How to Use</h2>
-        <div class="steps-container">
-          <div class="step">
-            <div class="step-number">1</div>
-            <div class="step-content">
-              <h3>Generate Your Badge</h3>
-              <p>Use the generator above to create a custom badge with your username</p>
-            </div>
-          </div>
-          
-          <div class="step">
-            <div class="step-number">2</div>
-            <div class="step-content">
-              <h3>Copy the Markdown</h3>
-              <p>Copy the generated markdown code for your badge</p>
-            </div>
-          </div>
-          
-          <div class="step">
-            <div class="step-number">3</div>
-            <div class="step-content">
-              <h3>Add to Your GitHub README</h3>
-              <p>Paste the markdown into your GitHub profile README.md file</p>
-            </div>
-          </div>
-          
-          <div class="step">
-            <div class="step-number">4</div>
-            <div class="step-content">
-              <h3>Watch Your Views Grow</h3>
-              <p>Your badge will now track and display profile views automatically</p>
+
+            <div class="current-stats" id="current-stats">
+              <h3><i class="fa-solid fa-chart-simple"></i> Current Statistics</h3>
+              <div class="stats-grid">
+                <div class="stat-card">
+                  <div class="stat-icon"><i class="fa-solid fa-eye"></i></div>
+                  <div class="stat-info">
+                    <div class="stat-label">Total Views</div>
+                    <div class="stat-value" id="totalViews">--</div>
+                  </div>
+                </div>
+                
+                <div class="stat-card">
+                  <div class="stat-icon"><i class="fa-solid fa-calendar-day"></i></div>
+                  <div class="stat-info">
+                    <div class="stat-label">Last Updated</div>
+                    <div class="stat-value" id="lastUpdated">--</div>
+                  </div>
+                </div>
+              </div>
+              <p class="refresh-note"><i class="fa-solid fa-rotate"></i> Counter updates in real-time as visitors view your GitHub profile</p>
             </div>
           </div>
         </div>
-      </section>
+        
+        <div class="tab-content" id="info-tab">
+          <div class="info-content">
+            <h3><i class="fa-solid fa-circle-question"></i> How it Works</h3>
+            <p>GitHub Profile Counter creates stylish badges that track and display views of your GitHub profile or repositories.</p>
+            
+            <div class="info-step">
+              <div class="step-number">1</div>
+              <div class="step-content">
+                <h4>Create Your Custom Badge</h4>
+                <p>Choose your preferred style, colors, and label text to match your GitHub profile design.</p>
+              </div>
+            </div>
+            
+            <div class="info-step">
+              <div class="step-number">2</div>
+              <div class="step-content">
+                <h4>Copy the Markdown Code</h4>
+                <p>Add the generated markdown to your GitHub README.md file where you want the badge to appear.</p>
+              </div>
+            </div>
+            
+            <div class="info-step">
+              <div class="step-number">3</div>
+              <div class="step-content">
+                <h4>Watch Your Statistics</h4>
+                <p>Each time someone views your profile, the counter automatically increments.</p>
+              </div>
+            </div>
+            
+            <div class="info-step">
+              <div class="step-number">4</div>
+              <div class="step-content">
+                <h4>Track Your Growth</h4>
+                <p>Return to check your view statistics and see how your profile popularity grows over time.</p>
+              </div>
+            </div>
+            
+            <div class="features-grid">
+              <div class="feature-card">
+                <div class="feature-icon">
+                  <i class="fa-solid fa-bolt"></i>
+                </div>
+                <h4>Fast & Reliable</h4>
+                <p>Built on serverless architecture for maximum performance and uptime</p>
+              </div>
+              
+              <div class="feature-card">
+                <div class="feature-icon">
+                  <i class="fa-solid fa-palette"></i>
+                </div>
+                <h4>Fully Customizable</h4>
+                <p>Choose from different styles, colors, and labels to perfectly match your profile</p>
+              </div>
+              
+              <div class="feature-card">
+                <div class="feature-icon">
+                  <i class="fa-solid fa-chart-simple"></i>
+                </div>
+                <h4>Real-time Analytics</h4>
+                <p>View accurate statistics without page refreshes or delays</p>
+              </div>
+              
+              <div class="feature-card">
+                <div class="feature-icon">
+                  <i class="fa-solid fa-code"></i>
+                </div>
+                <h4>Open Source</h4>
+                <p>Free to use and open for community contributions and improvements</p>
+              </div>
+            </div>
+            
+            <div class="info-note">
+              <i class="fa-solid fa-lightbulb"></i>
+              <p>Profile badges are a great way to showcase your popularity and connect with other developers!</p>
+            </div>
+          </div>
+        </div>
+      </div>
       
       <section class="faq-section">
         <h2>Frequently Asked Questions</h2>
@@ -193,27 +250,27 @@
               <i class="fa-solid fa-chevron-down"></i>
             </div>
             <div class="faq-answer">
-              <p>Yes, Profile Counter is completely free and open-source. You can use it for your personal or organization profiles without any limitations.</p>
+              <p>Yes, GitHub Profile Counter is completely free and open-source. You can use it for your personal or organization profiles without any limitations.</p>
             </div>
           </div>
           
           <div class="faq-item">
             <div class="faq-question">
-              <h3>How does the counter work?</h3>
+              <h3>How accurate is the counter?</h3>
               <i class="fa-solid fa-chevron-down"></i>
             </div>
             <div class="faq-answer">
-              <p>The counter works by tracking unique views of your badge. When someone loads your GitHub profile or repository that contains the badge, our server receives a request and increments your counter.</p>
+              <p>Our counter tracks actual views in real-time, with sophisticated measures to prevent duplicate counts and ensure accuracy. The badge connects directly to our backend, ensuring the numbers you see are always current.</p>
             </div>
           </div>
           
           <div class="faq-item">
             <div class="faq-question">
-              <h3>Can I see detailed analytics?</h3>
+              <h3>Can I use this for multiple repositories?</h3>
               <i class="fa-solid fa-chevron-down"></i>
             </div>
             <div class="faq-answer">
-              <p>Yes, we provide a detailed analytics dashboard for registered users. You can see daily view counts, referrer information, and more.</p>
+              <p>Absolutely! You can create multiple badges with different styles and colors for each of your repositories. Simply generate a new badge with the appropriate parameters for each location where you want to track views.</p>
             </div>
           </div>
           
@@ -223,7 +280,7 @@
               <i class="fa-solid fa-chevron-down"></i>
             </div>
             <div class="faq-answer">
-              <p>We respect your privacy. While we collect basic analytics data to make the counter work, we don't share any personal information with third parties. All analytics data is anonymized.</p>
+              <p>We respect your privacy. While we collect basic analytics data to make the counter work, we don't share any personal information with third parties. All analytics data is anonymized and used solely for counting purposes.</p>
             </div>
           </div>
           
@@ -233,31 +290,29 @@
               <i class="fa-solid fa-chevron-down"></i>
             </div>
             <div class="faq-answer">
-              <p>Absolutely! The project is open-source and available on GitHub. We welcome contributions from the community, whether it's bug fixes, new features, or documentation improvements.</p>
+              <p>Absolutely! The project is open-source and available on GitHub. We welcome contributions from the community, whether it's bug fixes, new features, or documentation improvements. Visit our GitHub repository to get started.</p>
             </div>
           </div>
         </div>
       </section>
-    </div>
-  </main>
-  
-  <footer>
-    <div class="container">
+    </main>
+    
+    <footer>
       <div class="footer-content">
         <div class="footer-logo">
           <div class="logo">
             <i class="fa-solid fa-chart-line"></i>
           </div>
-          <h2>Profile Counter</h2>
+          <h2>GitHub Profile Counter</h2>
         </div>
         
         <div class="footer-links">
           <div class="link-group">
             <h3>Project</h3>
             <ul>
-              <li><a href="https://github.com/yourusername/profile-counter"><i class="fa-brands fa-github"></i> GitHub</a></li>
-              <li><a href="/docs"><i class="fa-solid fa-book"></i> Documentation</a></li>
-              <li><a href="/api-docs"><i class="fa-solid fa-code"></i> API</a></li>
+              <li><a href="https://github.com/MohdYahyaMahmodi/github-profile-tracker"><i class="fa-brands fa-github"></i> GitHub</a></li>
+              <li><a href="https://github.com/MohdYahyaMahmodi/github-profile-tracker/readme.md"><i class="fa-solid fa-book"></i> Documentation</a></li>
+              <li><a href="https://github.com/MohdYahyaMahmodi/github-profile-tracker/readme.md"><i class="fa-solid fa-code"></i> API</a></li>
             </ul>
           </div>
           
@@ -265,15 +320,15 @@
             <h3>Support</h3>
             <ul>
               <li><a href="/faq"><i class="fa-solid fa-circle-question"></i> FAQ</a></li>
-              <li><a href="https://github.com/yourusername/profile-counter/issues"><i class="fa-solid fa-bug"></i> Report Bug</a></li>
-              <li><a href="https://github.com/yourusername/profile-counter/discussions"><i class="fa-solid fa-comments"></i> Discussions</a></li>
+              <li><a href="https://github.com/MohdYahyaMahmodi/github-profile-tracker/issues"><i class="fa-solid fa-bug"></i> Report Bug</a></li>
+              <li><a href="https://github.com/MohdYahyaMahmodi/github-profile-tracker/discussions"><i class="fa-solid fa-comments"></i> Discussions</a></li>
             </ul>
           </div>
           
           <div class="link-group">
             <h3>Connect</h3>
             <ul>
-              <li><a href="https://twitter.com/yourusername"><i class="fa-brands fa-twitter"></i> Twitter</a></li>
+              <li><a href="https://x.com/mohdmahmodi"><i class="fa-brands fa-twitter"></i> Twitter</a></li>
               <li><a href="mailto:your@email.com"><i class="fa-solid fa-envelope"></i> Contact</a></li>
               <li><a href="/sponsor"><i class="fa-solid fa-heart"></i> Sponsor</a></li>
             </ul>
@@ -282,14 +337,14 @@
       </div>
       
       <div class="footer-bottom">
-        <p>© 2025 Profile Counter | MIT License</p>
+        <p>© 2025 GitHub Profile Counter | MIT License</p>
         <div class="footer-social">
-          <a href="https://github.com/yourusername/profile-counter" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
-          <a href="https://twitter.com/yourusername" aria-label="Twitter"><i class="fa-brands fa-twitter"></i></a>
+          <a href="https://github.com/MohdYahyaMahmodi/github-profile-tracker" aria-label="GitHub"><i class="fa-brands fa-github"></i></a>
+          <a href="https://x.com/mohdmahmodi" aria-label="Twitter"><i class="fa-brands fa-twitter"></i></a>
         </div>
       </div>
-    </div>
-  </footer>
+    </footer>
+  </div>
   
   <div id="toast" class="toast hidden">
     <i class="fa-solid fa-check"></i>

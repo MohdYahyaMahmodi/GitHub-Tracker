@@ -14,14 +14,27 @@ async function connectToDatabase() {
     throw new Error('Please define the MONGODB_URI environment variable');
   }
 
-  const client = new MongoClient(process.env.MONGODB_URI);
-  await client.connect();
-  const db = client.db('profile-counter');
-  
-  cachedClient = client;
-  cachedDb = db;
-  
-  return { client, db };
+  try {
+    // Connect to MongoDB with options
+    const uri = process.env.MONGODB_URI;
+    const options = {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    };
+    
+    const client = new MongoClient(uri, options);
+    await client.connect();
+    const db = client.db('profile-counter');
+    
+    // Cache the client and db connections
+    cachedClient = client;
+    cachedDb = db;
+    
+    return { client, db };
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    throw new Error('Failed to connect to MongoDB');
+  }
 }
 
 module.exports = async (req, res) => {
@@ -42,24 +55,42 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Username is required' });
     }
     
-    const { db } = await connectToDatabase();
-    const result = await db.collection('counters').findOne(
-      { username },
-      { projection: { _id: 0, username: 1, count: 1, lastUpdated: 1 }}
-    );
-    
-    if (!result) {
-      return res.json({
+    try {
+      const { db } = await connectToDatabase();
+      
+      const result = await db.collection('counters').findOne(
+        { username },
+        { projection: { _id: 0, username: 1, count: 1, lastUpdated: 1 }}
+      );
+      
+      if (!result) {
+        // Return default data structure with count 0 instead of an error
+        return res.status(200).json({
+          username,
+          count: 0,
+          lastUpdated: null
+        });
+      }
+      
+      return res.status(200).json(result);
+      
+    } catch (dbError) {
+      console.error('Database operation error:', dbError);
+      
+      // Return a default response even when DB fails
+      return res.status(200).json({
         username,
         count: 0,
-        lastUpdated: null
+        lastUpdated: null,
+        error: 'Database error'
       });
     }
-    
-    return res.json(result);
-    
   } catch (error) {
     console.error('API error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(200).json({ 
+      error: 'Internal server error',
+      username: req.query.username || 'unknown',
+      count: 0
+    });
   }
 };

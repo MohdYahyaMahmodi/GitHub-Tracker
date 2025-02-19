@@ -14,14 +14,27 @@ async function connectToDatabase() {
     throw new Error('Please define the MONGODB_URI environment variable');
   }
 
-  const client = new MongoClient(process.env.MONGODB_URI);
-  await client.connect();
-  const db = client.db('profile-counter');
-  
-  cachedClient = client;
-  cachedDb = db;
-  
-  return { client, db };
+  try {
+    // Connect to MongoDB with options
+    const uri = process.env.MONGODB_URI;
+    const options = {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    };
+    
+    const client = new MongoClient(uri, options);
+    await client.connect();
+    const db = client.db('profile-counter');
+    
+    // Cache the client and db connections
+    cachedClient = client;
+    cachedDb = db;
+    
+    return { client, db };
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    throw new Error('Failed to connect to MongoDB');
+  }
 }
 
 // Basic authentication middleware
@@ -50,80 +63,84 @@ module.exports = async (req, res) => {
   
   try {
     const { username } = req.query;
-    const { days = 30 } = req.query;
+    const days = parseInt(req.query.days || '30', 10);
     
     if (!username) {
       return res.status(400).json({ error: 'Username is required' });
     }
     
-    const { db } = await connectToDatabase();
-    
-    const daysAgo = new Date();
-    daysAgo.setDate(daysAgo.getDate() - parseInt(days));
-    
-    const result = await db.collection('counters').findOne(
-      { username },
-      { projection: { _id: 0, username: 1, count: 1, lastUpdated: 1 }}
-    );
-    
-    if (!result) {
-      return res.status(404).json({ error: 'Username not found' });
+    try {
+      const { db } = await connectToDatabase();
+      
+      const daysAgo = new Date();
+      daysAgo.setDate(daysAgo.getDate() - days);
+      
+      const result = await db.collection('counters').findOne(
+        { username },
+        { projection: { _id: 0, username: 1, count: 1, lastUpdated: 1 }}
+      );
+      
+      if (!result) {
+        return res.status(404).json({ error: 'Username not found' });
+      }
+      
+      // Get daily views - use a simpler aggregation to avoid issues
+      const dailyViewsPromise = db.collection('counters').aggregate([
+        { $match: { username } },
+        { $unwind: '$views' },
+        { $match: { 'views.timestamp': { $gte: daysAgo } } },
+        { $group: {
+            _id: { 
+              $dateToString: { format: '%Y-%m-%d', date: '$views.timestamp' } 
+            },
+            count: { $sum: 1 }
+          }
+        },
+        { $sort: { _id: 1 } }
+      ]).toArray();
+      
+      // Get referrer stats with a simpler structure
+      const referrersPromise = db.collection('counters').aggregate([
+        { $match: { username } },
+        { $unwind: '$views' },
+        { $match: { 'views.timestamp': { $gte: daysAgo } } },
+        { $group: {
+            _id: '$views.referer',
+            count: { $sum: 1 }
+          }
+        },
+        { $sort: { count: -1 } },
+        { $limit: 10 }
+      ]).toArray();
+      
+      // Execute all promises
+      const [dailyViews, referrers] = await Promise.all([
+        dailyViewsPromise,
+        referrersPromise
+      ]);
+      
+      res.status(200).json({
+        username,
+        totalCount: result.count,
+        lastUpdated: result.lastUpdated,
+        dailyViews,
+        topReferrers: referrers
+      });
+      
+    } catch (dbError) {
+      console.error('Database operation error:', dbError);
+      return res.status(200).json({
+        username,
+        totalCount: 0,
+        note: 'Limited data available due to database error'
+      });
     }
-    
-    // Get daily views
-    const dailyViews = await db.collection('counters').aggregate([
-      { $match: { username } },
-      { $unwind: '$views' },
-      { $match: { 'views.timestamp': { $gte: daysAgo } } },
-      { $group: {
-          _id: { 
-            $dateToString: { format: '%Y-%m-%d', date: '$views.timestamp' } 
-          },
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { _id: 1 } }
-    ]).toArray();
-    
-    // Get referrer stats
-    const referrers = await db.collection('counters').aggregate([
-      { $match: { username } },
-      { $unwind: '$views' },
-      { $match: { 'views.timestamp': { $gte: daysAgo } } },
-      { $group: {
-          _id: '$views.referer',
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { count: -1 } },
-      { $limit: 10 }
-    ]).toArray();
-    
-    // Get user agent stats (browsers/platforms)
-    const userAgents = await db.collection('counters').aggregate([
-      { $match: { username } },
-      { $unwind: '$views' },
-      { $match: { 'views.timestamp': { $gte: daysAgo } } },
-      { $group: {
-          _id: '$views.userAgent',
-          count: { $sum: 1 }
-        }
-      },
-      { $sort: { count: -1 } },
-      { $limit: 10 }
-    ]).toArray();
-    
-    res.json({
-      username,
-      totalCount: result.count,
-      lastUpdated: result.lastUpdated,
-      dailyViews,
-      topReferrers: referrers,
-      topUserAgents: userAgents
-    });
-    
   } catch (error) {
     console.error('Analytics error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(200).json({ 
+      error: 'Internal server error', 
+      username: req.query.username || 'unknown',
+      limitedData: true
+    });
   }
 };
