@@ -1,6 +1,6 @@
 :root {
-  --primary-color: #6366f1;
-  --primary-hover: #4f46e5;
+  --primary-color: #24292e;
+  --primary-hover: #2b3137;
   --secondary-color: #1e293b;
   --accent-color: #f59e0b;
   --success-color: #10b981;
@@ -184,6 +184,23 @@ input[type="number"]:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* Generate Button */
+#generateBadge {
+  padding: 0.875rem 1.25rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+  min-width: 100px;
+}
+
+#generateBadge:hover {
+  background-color: var(--primary-hover);
 }
 
 .color-picker {
@@ -528,14 +545,27 @@ input[type="color"]::-webkit-color-swatch {
   font-size: 1rem;
 }
 
+/* --- Updated 2x2 Features Grid --- */
 .info-content .features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
   margin: 3rem 0;
 }
 
 .info-content .feature-card {
+  background-color: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--border-radius);
   padding: 1.5rem;
   text-align: center;
   transition: all 0.3s;
+  box-shadow: var(--shadow-sm);
+}
+
+.info-content .feature-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow);
 }
 
 .info-content .feature-icon {
@@ -972,6 +1002,11 @@ footer {
     right: 1rem;
     bottom: 1rem;
   }
+  
+  /* On small screens, display the features grid as a single column */
+  .info-content .features-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Animations */
@@ -1007,7 +1042,7 @@ footer {
   animation: fadeInUp 0.6s ease-out;
 }
 
-/* Add to your styles.css file */
+/* Additional Styles */
 .preview-box {
   margin-top: 1rem;
 }

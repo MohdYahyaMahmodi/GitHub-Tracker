@@ -176,8 +176,8 @@ module.exports = async (req, res) => {
                '0.0.0.0';
     
     let count = 0;
-    // Always count the view on every request (rate limiting removed)
-    const shouldCount = true;
+    // Only increment the counter if noCount is not set to 'true'
+    const shouldCount = req.query.noCount !== 'true';
     
     try {
       // Connect to database

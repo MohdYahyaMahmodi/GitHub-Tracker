@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   // DOM Elements
   const usernameInput = document.getElementById('username');
+  const generateBadgeBtn = document.getElementById('generateBadge');
   const labelInput = document.getElementById('label');
   const colorInput = document.getElementById('color');
   const colorHexInput = document.getElementById('colorHex');
@@ -32,16 +33,23 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastUpdatedParams = '';
   let statsFetchTimer;
   
-  // Initialize with demo values
+  // Initialize preview with placeholder text
   displayDemoCounter();
   
-  // Event listeners with debounce
-  usernameInput.addEventListener('input', debounceUpdatePreview);
+  // Update preview only when the user presses Enter or clicks "Generate"
+  usernameInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      updateBadgePreview();
+    }
+  });
+  
+  generateBadgeBtn.addEventListener('click', updateBadgePreview);
+  
+  // Other fields update on input
   labelInput.addEventListener('input', debounceUpdatePreview);
   colorInput.addEventListener('input', handleColorChange);
   colorHexInput.addEventListener('input', handleHexChange);
   
-  // Color pickers if they exist
   if (labelColorInput) labelColorInput.addEventListener('input', debounceUpdatePreview);
   if (labelBgColorInput) labelBgColorInput.addEventListener('input', debounceUpdatePreview);
   if (countColorInput) countColorInput.addEventListener('input', debounceUpdatePreview);
@@ -50,12 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       const tabTarget = tab.getAttribute('data-tab');
-      
-      // Remove active class from all tabs and contents
       tabs.forEach(t => t.classList.remove('active'));
       tabContents.forEach(content => content.classList.remove('active'));
-      
-      // Add active class to clicked tab and corresponding content
       tab.classList.add('active');
       document.getElementById(`${tabTarget}-tab`).classList.add('active');
     });
@@ -64,16 +68,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Style selector
   styleOptions.forEach(option => {
     option.addEventListener('click', () => {
-      // Remove active class from all options
       styleOptions.forEach(opt => opt.classList.remove('active'));
-      
-      // Add active class to clicked option
       option.classList.add('active');
-      
-      // Update current style
       currentStyle = option.getAttribute('data-style');
-      
-      // Update the badge preview
       debounceUpdatePreview();
     });
   });
@@ -87,44 +84,32 @@ document.addEventListener('DOMContentLoaded', () => {
   faqItems.forEach(item => {
     const question = item.querySelector('.faq-question');
     question.addEventListener('click', () => {
-      // Close other items
       faqItems.forEach(otherItem => {
         if (otherItem !== item && otherItem.classList.contains('active')) {
           otherItem.classList.remove('active');
         }
       });
-      
-      // Toggle this item
       item.classList.toggle('active');
     });
   });
   
   // Functions
   function displayDemoCounter() {
-    // Show a demo counter for design purposes
     previewContainer.classList.remove('hidden');
+    // Show placeholder text instead of a demo image
+    badgePreview.innerHTML = '<p class="placeholder-text">Please enter a username or repository name to track</p>';
     
-    const demoImg = document.createElement('img');
-    demoImg.src = `${baseUrl}/api/counter?username=demo&label=Profile%20Views&color=6366f1&style=flat`;
-    demoImg.alt = 'Demo counter';
-    demoImg.style.maxWidth = '100%';
-    demoImg.style.maxHeight = '100%';
-    badgePreview.innerHTML = '';
-    badgePreview.appendChild(demoImg);
-    
-    // Set demo text values
     badgeUrlInput.value = `${baseUrl}/api/counter?username=yourusername&label=Profile%20Views&color=6366f1&style=flat`;
     markdownCodeInput.value = `![Profile Views](${baseUrl}/api/counter?username=yourusername&label=Profile%20Views&color=6366f1&style=flat)`;
     htmlCodeInput.value = `<img src="${baseUrl}/api/counter?username=yourusername&label=Profile%20Views&color=6366f1&style=flat" alt="Profile Views" />`;
     
-    // Set demo stats
     totalViews.textContent = '0';
     lastUpdated.textContent = 'Never';
   }
   
   function debounceUpdatePreview() {
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(updateBadgePreview, 300);
+    debounceTimer = setTimeout(updateBadgePreview, 50);
   }
   
   function handleColorChange(e) {
@@ -135,8 +120,6 @@ document.addEventListener('DOMContentLoaded', () => {
   
   function handleHexChange(e) {
     let hex = e.target.value;
-    
-    // Check if input is a valid hex color
     if (/^#[0-9A-F]{6}$/i.test(hex)) {
       colorInput.value = hex;
       debounceUpdatePreview();
@@ -146,42 +129,30 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateBadgePreview() {
     const username = usernameInput.value.trim();
     const label = labelInput.value.trim() || 'Profile Views';
-    const countBgColor = colorInput.value.replace('#', ''); // Main badge color (count background)
-    
-    // Additional colors if available
+    const countBgColor = colorInput.value.replace('#', '');
     const labelColor = labelColorInput ? labelColorInput.value.replace('#', '') : '555';
     const labelBgColor = labelBgColorInput ? labelBgColorInput.value.replace('#', '') : 'eee';
     const countColor = countColorInput ? countColorInput.value.replace('#', '') : 'fff';
     
     if (!username) {
-      // Display demo when no username is entered
       displayDemoCounter();
       return;
     }
     
-    // Show preview container
     previewContainer.classList.remove('hidden');
-    
-    // Current parameters for comparison
     const currentParams = `${username}-${label}-${countBgColor}-${labelColor}-${labelBgColor}-${countColor}-${currentStyle}`;
     
-    // Only update if parameters have changed
     if (currentParams !== lastUpdatedParams) {
       lastUpdatedParams = currentParams;
-      
-      // Add all color parameters to URL
-      const badgeUrl = `${baseUrl}/api/counter?username=${encodeURIComponent(username)}` + 
+      const badgeUrl = `${baseUrl}/api/counter?username=${encodeURIComponent(username)}` +
                        `&label=${encodeURIComponent(label)}` +
                        `&color=${encodeURIComponent(countBgColor)}` +
                        `&labelColor=${encodeURIComponent(labelColor)}` +
                        `&labelBgColor=${encodeURIComponent(labelBgColor)}` +
                        `&countColor=${encodeURIComponent(countColor)}` +
                        `&style=${currentStyle}`;
+      const previewUrl = `${badgeUrl}&noCount=true&t=${new Date().getTime()}`;
       
-      // Add timestamp to force refresh
-      const previewUrl = `${badgeUrl}&t=${new Date().getTime()}`;
-      
-      // Update preview image
       if (previewImage) {
         previewImage.src = previewUrl;
       } else {
@@ -194,12 +165,10 @@ document.addEventListener('DOMContentLoaded', () => {
         badgePreview.appendChild(previewImage);
       }
       
-      // Update URL and code inputs
       badgeUrlInput.value = badgeUrl;
       markdownCodeInput.value = `![${label}](${badgeUrl})`;
       htmlCodeInput.value = `<img src="${badgeUrl}" alt="${label}" />`;
       
-      // Fetch count stats with debounce to avoid excessive API calls
       clearTimeout(statsFetchTimer);
       statsFetchTimer = setTimeout(() => fetchCountStats(username), 500);
     }
@@ -213,7 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     try {
-      // Add timestamp to prevent caching
       const url = `${baseUrl}/api/stats?username=${encodeURIComponent(username)}&t=${new Date().getTime()}`;
       const response = await fetch(url);
       
@@ -222,8 +190,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       const data = await response.json();
-      
-      // Update stats display - handle both count=0 and count being undefined
       totalViews.textContent = data.count !== undefined ? data.count : '0';
       
       if (data.lastUpdated) {
@@ -240,7 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   function formatDate(date) {
-    // Check if date is valid
     if (!(date instanceof Date) || isNaN(date)) {
       return 'N/A';
     }
@@ -251,7 +216,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
     
-    // Format based on elapsed time
     if (diffMins < 1) {
       return 'Just now';
     } else if (diffMins < 60) {
@@ -261,7 +225,6 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (diffDays < 7) {
       return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
     } else {
-      // Format as date for older entries
       return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
@@ -278,8 +241,6 @@ document.addEventListener('DOMContentLoaded', () => {
   
   function showToast(message, isSuccess) {
     toastMessage.textContent = message;
-    
-    // Set icon based on success/failure
     const icon = toast.querySelector('i');
     if (isSuccess) {
       icon.className = 'fa-solid fa-check';
@@ -289,11 +250,9 @@ document.addEventListener('DOMContentLoaded', () => {
       icon.style.color = 'var(--error-color)';
     }
     
-    // Show toast with animation
     toast.classList.remove('hidden');
     toast.classList.add('show');
     
-    // Hide after 3 seconds
     setTimeout(() => {
       toast.classList.remove('show');
       toast.classList.add('hide');
