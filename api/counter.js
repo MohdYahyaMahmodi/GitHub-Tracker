@@ -215,7 +215,7 @@ module.exports = async (req, res) => {
           },
           { 
             upsert: true,
-            returnOriginal: false
+            returnDocument: 'after'
           }
         );
         
