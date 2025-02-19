@@ -5,7 +5,7 @@
 ![MongoDB](https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=flat&logo=mongodb&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=flat&logo=javascript&logoColor=%23F7DF1E)
 
-![Profile Views](https://ghtb-counter.vercel.app/api/counter?username=MohdYahyaMahmodi&label=Profile%20Views&color=6366f1&style=flat)
+![Views](https://ghtb-counter.vercel.app/api/counter?username=MohdYahyaMahmodi&label=Profile%20Views&color=6366f1&style=flat)
 
 A customizable, real-time profile view counter for your GitHub profiles and repositories. Add stylish badges to track and display visitor counts on your README files.
 
