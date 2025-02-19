@@ -137,43 +137,6 @@ function formatColor(color) {
   return color;
 }
 
-// Rate limiting helpers - to prevent abusive refreshing
-const viewCounters = {};
-const RATE_LIMIT_WINDOW = 60000; // 1 minute in milliseconds for direct API calls
-
-function isRateLimited(ip, username) {
-  const now = Date.now();
-  const key = `${ip}:${username}`;
-  
-  // Clean up old entries
-  Object.keys(viewCounters).forEach(k => {
-    if (now - viewCounters[k].timestamp > RATE_LIMIT_WINDOW) {
-      delete viewCounters[k];
-    }
-  });
-  
-  if (!viewCounters[key]) {
-    viewCounters[key] = {
-      count: 1,
-      timestamp: now
-    };
-    return false;
-  }
-  
-  // Limit to prevent excessive counting on direct refreshes
-  if (now - viewCounters[key].timestamp < RATE_LIMIT_WINDOW) {
-    viewCounters[key].count += 1;
-    return viewCounters[key].count > 5; // Allow up to 5 counts per minute
-  }
-  
-  // Reset counter if window has passed
-  viewCounters[key] = {
-    count: 1,
-    timestamp: now
-  };
-  return false;
-}
-
 module.exports = async (req, res) => {
   try {
     // Set CORS headers
@@ -206,14 +169,15 @@ module.exports = async (req, res) => {
     const countColor = formatColor(req.query.countColor || 'fff');
     const labelBgColor = formatColor(req.query.labelBgColor || 'eee');
     
-    // Extract client IP for rate limiting
+    // Extract client IP (used for logging purposes)
     const ip = req.headers['x-forwarded-for'] || 
                req.headers['x-real-ip'] || 
                req.connection.remoteAddress || 
                '0.0.0.0';
     
     let count = 0;
-    let shouldCount = !isRateLimited(ip, username);
+    // Always count the view on every request (rate limiting removed)
+    const shouldCount = true;
     
     try {
       // Connect to database
@@ -223,7 +187,7 @@ module.exports = async (req, res) => {
       const currentDoc = await db.collection('counters').findOne({ username });
       count = currentDoc?.count || 0;
       
-      // Increment counter if not rate limited
+      // Increment counter since shouldCount is always true
       if (shouldCount) {
         // Store analytics data
         const timestamp = new Date();
@@ -251,12 +215,12 @@ module.exports = async (req, res) => {
           },
           { 
             upsert: true,
-            returnDocument: 'after'
+            returnOriginal: false
           }
         );
         
         // Use the updated count if available
-        if (result?.value?.count) {
+        if (result?.value?.count !== undefined) {
           count = result.value.count;
         } else {
           // Otherwise, increment our local count since we know we successfully updated
